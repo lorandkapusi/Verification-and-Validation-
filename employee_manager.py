@@ -11,7 +11,7 @@ class EmployeeManager:
         self.relations_manager = relations_manager
 
     def calculate_salary(self, employee: Employee) -> int:
-        salary = employee.base_salary
+        salary = employee.base_salary-500
 
         years_at_company = datetime.date.today().year - employee.hire_date.year
 
@@ -19,7 +19,7 @@ class EmployeeManager:
 
         if self.relations_manager.is_leader(employee):
             team_members_count = len(self.relations_manager.get_team_members(employee))
-            salary += team_members_count * EmployeeManager.leader_bonus_per_member
+            salary += team_members_count * EmployeeManager.leader_bonus_per_member 
 
         return salary
 

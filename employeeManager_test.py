@@ -1,36 +1,55 @@
-import employee_manager
+from employee import Employee
 from relations_manager import RelationsManager
+from employee_manager import EmployeeManager
 import datetime
-from employee import Employee 
+
+relation_manager = RelationsManager()
+employee_manager = EmployeeManager(relation_manager)
+
+#Check an employee’s salary who is not a team leader whose hire date is 10.10.1998 and his base salary is 1000$. Make sure the returned value is 3000$ (1000$ + 20 X 100$).
+def test_employee_salary_not_team_leader():
+    expedted_salary = 3000
+    
+    employee = Employee(id=7, first_name="Johnny", last_name="Bravo", base_salary=1000,
+                  birth_date=datetime.date(1970, 1, 31), 
+                  hire_date=datetime.date(1998, 10, 10))
+    
+    employee_salary = employee_manager.calculate_salary(employee)
+
+    assert expedted_salary == employee_salary
 
 
-def test_team_leader():
-    rm = RelationsManager()
-    all_employees = rm.get_all_employees()
-    john_doe = None
-    for employee in all_employees:
-        if employee.first_name == "John" and employee.last_name == "Doe" and employee.birth_date == datetime.date(1970, 1, 31):
-            john_doe = employee
-            break
-    assert john_doe is not None, "Test failed, there is no employee named John Doe with birthdate 31.01.1970"
-    assert rm.is_leader(john_doe), "Test failed, John Doe is not a team leader"
+
+def test_employee_salary_team_leader():
+    
+    expedted_salary = 3600
+    
+    employee = Employee(id=7, first_name="Julia", last_name="Doe", base_salary=2000,
+                  birth_date=datetime.date(1970, 1, 31), 
+                  hire_date=datetime.date(2008, 10, 10))
+    
+    relation_manager.teams.update({7:[1,2,3]})
+
+    employee_salary = employee_manager.calculate_salary(employee) 
+
+    assert expedted_salary == employee_salary
 
 
-def test_john_doe_team_members():
-    rm = RelationsManager()
-    john_doe = rm.employee_list[0]
-    team_members = rm.get_team_members(john_doe)
-    expected_members = [2, 3]
-    actual_members = [e.id for e in rm.employee_list if e.id in team_members]
-    actual_names = [e.first_name + ' ' + e.last_name for e in rm.employee_list if e.id in team_members]
-    expected_names = ['Myrta Torkelson', 'Jettie Lynch']
-    assert actual_members == expected_members, f"Expected members: {expected_members}, Actual members: {actual_members}"
-    assert actual_names == expected_names, f"Expected names: {expected_names}, Actual names: {actual_names}"
 
-def test_tomas_andre_not_john_doe_team_member():
-    rm = RelationsManager()
-    john_doe = rm.employee_list[0]
-    team_members = rm.get_team_members(john_doe)
-    tomas = next((e for e in rm.employee_list if e.first_name == "Tomas"), None)
-    assert tomas is not None, "Tomas Andre not found in employee list"
-    assert tomas.id not in team_members, "Tomas Andre is a member of John Doe's team"
+def test_calculate_salary_and_send_email(capsys):
+
+    """ Make sure that when you calculate the salary and send an email notification,
+    the respective email sender service is used with the correct information (name and message). 
+    You can use the setup from the previous test for the employee.
+    
+    """
+
+    employee = Employee(id=7, first_name="Julia", last_name="Doe", base_salary=2000,
+                  birth_date=datetime.date(1970, 1, 31), hire_date=datetime.date(2008, 10, 10))
+    
+    relation_manager.teams.update({7:[1,2,3]})
+    
+    employee_manager.calculate_salary_and_send_email(employee)
+   
+    captured = capsys.readouterr()
+    assert captured.out == "Julia Doe your salary: 3600 has been transferred to you."+'\n'

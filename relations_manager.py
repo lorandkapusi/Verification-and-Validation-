@@ -42,3 +42,4 @@ class RelationsManager:
             members = [e.id for e in self.employee_list if e.id in member_ids]
 
             return members
+
